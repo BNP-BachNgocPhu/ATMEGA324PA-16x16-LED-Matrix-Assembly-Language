@@ -4,7 +4,7 @@ Design and Simulation of 16x16 LED Matrix Control Using ATMEGA324PA Microcontrol
 # **Project Requirements**
 
 <div align="center">
-    <img src="https://github.com/user-attachments/assets/f29dbcf3-dfed-43fa-825b-8caeeb600f16" width="400">
+    <img src="https://github.com/user-attachments/assets/f29dbcf3-dfed-43fa-825b-8caeeb600f16" width="300">
 </div>
 
 
@@ -38,3 +38,4 @@ Design an electronic circuit using an **ATMEGA324PA** microcontroller and necess
 
 
 
+dfsdf
