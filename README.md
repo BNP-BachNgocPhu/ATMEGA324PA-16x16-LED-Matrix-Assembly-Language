@@ -847,6 +847,24 @@ For **Q, E, Z, C**, when colliding with a boundary, the lit point **reflects at 
 - Example: **If the lit point is at (3,15) and E is pressed (moving diagonally up)**:  
   - It hits the top boundary **y = 15**, but since it moves diagonally, it reflects at **the left boundary**, resulting in **a new position of (0, 15 - 3)**.  
 
+<div align="center">
+    <figure>
+        <img src="https://github.com/user-attachments/assets/6e0d9fb6-b2df-4eed-9ab3-6c6002ebb351" width="500">
+        <br>
+        <figcaption>Figure 15: RS232-based system using UART for keyboard data transmission and 16x16 LED matrix control with ATmega324PA</figcaption>
+    </figure>
+</div> 
+<br>
+<div align="center">
+    <figure>
+        <img src="https://github.com/user-attachments/assets/eb311a2f-fe97-4876-b43d-e22ca6ecf4a1" width="500">
+        <br>
+        <figcaption>Figure 16: Using Onboard Buttons Instead of UART </figcaption>
+    </figure>
+</div> 
+
+
+
 ## **System operation video**
 ### 🎮 Button Operation  
 The button is used to show the operation of the pressed keys.  
