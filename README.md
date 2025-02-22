@@ -865,13 +865,17 @@ For **Q, E, Z, C**, when colliding with a boundary, the lit point **reflects at 
 
 
 ## **System operation video**
-### 🎮 Button Operation  
-The button is used to show the operation of the pressed keys.  
+
+### 🔗 Button Control Point
 <div align="center">
 
+
+
 [![Button Operation](https://img.youtube.com/vi/3XSUUd_ZQuQ/0.jpg)](https://youtu.be/3XSUUd_ZQuQ)
+</div>
 
 ### 🔗 UART Control Point  
+<div align="center">
 
 [![UART Control](https://img.youtube.com/vi/4y26vJ2dfxk/0.jpg)](https://youtu.be/4y26vJ2dfxk)
 
