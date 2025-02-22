@@ -15,9 +15,9 @@ Design and Simulation of 16x16 LED Matrix Control Using ATMEGA324PA Microcontrol
     </figure>
 </div>
 
-# **Project Requirements**
+## **Project Requirements**
 
-## **Objective**
+### **Objective**
 Design an electronic circuit using an **ATMEGA324PA** microcontroller and necessary ICs to control a **16x16 LED matrix** (composed of four **8x8 LED matrices**). Additionally, establish **UART communication** with a computer.
 <div align="center">
     <figure>
@@ -26,7 +26,7 @@ Design an electronic circuit using an **ATMEGA324PA** microcontroller and necess
     </figure>
 </div>
 
-## **Constraints**
+### **Constraints**
 - Only **PORT A** and **PORT B** may be used in the design.
 <div align="center">
     <figure>
@@ -35,11 +35,11 @@ Design an electronic circuit using an **ATMEGA324PA** microcontroller and necess
     </figure>
 </div>
 
-## **Requirements for Simulation in Proteus**
-### **Simulation Setup**
+### **Requirements for Simulation in Proteus**
+#### **Simulation Setup**
 - Create a **simulation in Proteus** and program the **ATMEGA324PA** to illuminate a **single pixel** at the intersection of **column 0, row 0** (lowest weight).
 
-### **Keyboard Input and Pixel Movement**
+#### **Keyboard Input and Pixel Movement**
 - Receive input from four keys (**W/A/S/D** or **w/a/s/d**) to move the illuminated pixel on the **LED matrix**:
   - If a key is pressed for **less than 0.5 seconds**, the pixel moves **by one position**.
   - If a key is **held for more than 0.5 seconds**, the pixel moves **one position every 0.5 seconds**.
@@ -49,7 +49,7 @@ Design an electronic circuit using an **ATMEGA324PA** microcontroller and necess
 - **Diagonal Movement:** Keys can be combined for diagonal movement.
   - **Example:** Holding **W and D** will move the pixel **diagonally up-right (45°).**
 
-### **Notes**
+#### **Notes**
 - When designing the **LED matrix in Proteus**, students should connect wires **by naming them**. After wiring, they can reposition the LED matrix for clarity.
 - **Ensure** that:
   - The **least significant row** is on the **left side**.
@@ -57,8 +57,8 @@ Design an electronic circuit using an **ATMEGA324PA** microcontroller and necess
 
 ---
 
-# **Implement the Project**
-## **I will analyze some of the challenges of the Project**
+## **Implement the Project**
+### **I will analyze some of the challenges of the Project**
 The difficult of this project is the only using two ports (A and B). Each 8x8 led matrix has 16 pins to connect, so 16x16 led matrix has 64 pins.
 Therefore, I didn't have enough pins from MCU ATMEGA324PA (because of using two ports A and B) in order to connect all pins at 16x16 led matrix.
 
@@ -282,11 +282,11 @@ The selected column in **Block A, B, C, or D** is activated. The selected column
 ---
 ## **Algorithm Works**
 ### **1. LED Matrix Initialization Process**  
-1. **Reset all LEDs** by setting **all columns (COL) to HIGH** and **all rows (ROW) to LOW**.  
-2. **Initialize the default lit point at (0,0)** by:  
+- **Reset all LEDs** by setting **all columns (COL) to HIGH** and **all rows (ROW) to LOW**.  
+- **Initialize the default lit point at (0,0)** by:  
    - Setting **COL0 to LOW** to select column 0.  
    - Setting **ROW0 to HIGH** to select row 0.  
-3. **Prepare registers to track the position (X, Y) of the lit point.**  
+- **Prepare registers to track the position (X, Y) of the lit point.**  
 
 ### **2. Controlling the Movement of the Lit Point**  
 The system allows **users to press keys** to move the lit point in **8 main directions**:  
@@ -321,3 +321,516 @@ The system allows **users to press keys** to move the lit point in **8 main dire
 - **If the key is held for more than 0.5 seconds**, the lit point **moves continuously in that direction**.  
 - **A 500ms delay prevents excessive speed** and ensures accurate LED display. 
 
+---
+
+## **Algorithm Implementation**
+### **Algorithm for Handling the W Key in the LED Matrix Control Circuit**
+
+### **1. Overview**
+This program processes the **W key press**, which moves the lit point **upward** in the **16x16 LED matrix**. 
+
+- Each time the **W key is pressed**, the program **checks if the lit point exceeds the boundaries of a single 8x8 LED block**.
+- If the point remains within the same block, it executes **CTC `KEY_W_LESS_7`** to move within the current block.
+- If the point exceeds the block boundary, it executes **CTC `KEY_W_MORE_7`** to jump to a new LED block and place the lit point in the corresponding position.
+- If the lit point **exceeds the entire 16x16 matrix**, the program **resets the LED matrix** and repositions the lit point at its original x-coordinate.
+
+### **2. Program Explanation**
+
+#### **Step 1: Check the new position of the lit point**
+```assembly
+        PUSH R16                
+        INC R10                 ; Increase y-position counter
+        MOV R16, R10            
+        CPI R16, 8              ; Check if it exceeds the size of one 8x8 LED block
+        BRCC OVER_KEY_W         ; If y >= 8, jump to OVER_KEY_W (handle crossing boundary)
+        RCALL KEY_W_LESS_7      ; If y < 8, execute CTC KEY_W_LESS_7 to move within the same LED block
+        RJMP EXIT_W             ; Exit the W key processing routine
+```
+- **R10** stores the **y-coordinate** in the 8x8 block.
+- If **y < 8**, the point remains within the block, so the program calls `KEY_W_LESS_7`.
+- If **y ≥ 8**, the point **crosses the upper boundary** of the LED block, so the program processes a **block transition**.
+
+#### **Step 2: Handle block transition**
+```assembly
+OVER_KEY_W:
+        RCALL KEY_W_MORE_7      ; Execute CTC KEY_W_MORE_7 to transition to a new LED block
+        MOV R16, R0             ; Check if the lit point has exceeded the 16x16 LED matrix
+        CPI R16, 2
+        BRCC OVER_C_D_COL       ; If R16 >= 2, the point is outside the 16x16 LED matrix
+        RCALL KEY_W_LESS_7      ; If not exceeded, continue `KEY_W_LESS_7` to finalize movement
+        RJMP EXIT_W             
+```
+- If the lit point remains within **16x16 matrix**, it continues execution in `KEY_W_LESS_7`.
+- If the lit point **exceeds the 16x16 matrix** (R16 ≥ 2), it moves to `OVER_C_D_COL` to **reset the matrix**.
+
+#### **Step 3: Reset the LED matrix if the point exceeds 16x16**
+```assembly
+OVER_C_D_COL:
+        PUSH R13                ; Save x-position before resetting the matrix
+        RCALL SETUP_MATRIX      ; Reset the LED matrix
+        POP R16    
+        CPI R16, 0              ; Check if x = 0
+        BREQ EXIT_W             ; If x = 0, skip `SET_OVER_COL`
+```
+- If the point **exceeds the 16x16 LED matrix**, the system **resets the matrix** using `SETUP_MATRIX`.
+- **R13 stores the x-position before reset**, and the system restores **R16 to check x-coordinate**.
+- If **x = 0**, it **exits** without repositioning.
+
+#### **Step 4: Adjust x-coordinate if needed**
+```assembly
+SET_OVER_COL:                
+        INC R13               ; Increase x-position
+        RCALL KEY_D           ; Call the D key function to shift right
+        DEC R16               ; Decrease R16 counter
+        BRNE SET_OVER_COL     ; If R16 is not zero, repeat the loop
+```
+- If **x ≠ 0**, the program **increments x and shifts the lit point right** to restore its correct position.
+- This loop ensures the **lit point appears in the correct x-location after reset**.
+
+#### **Step 5: Exit the W key processing routine**
+```assembly
+EXIT_W:                            
+        POP R16
+        RET                        ; Return to main program
+```
+- **Ends the W key handling routine** by restoring **R16** and **returning to the main program**.
+
+### **3. Summary of the W Key Handling Algorithm**
+1. **Increase the y-coordinate by 1 to move up.**  
+2. **Check if the lit point exceeds the current block:**  
+   - If **not exceeded**, move within the block (`KEY_W_LESS_7`).  
+   - If **exceeded**, transition to the next LED block (`KEY_W_MORE_7`).  
+3. **Check if the lit point is outside the 16x16 matrix:**  
+   - If **inside**, continue normal movement.  
+   - If **outside**, **reset the LED matrix** (`SETUP_MATRIX`).  
+4. **If x ≠ 0 after reset, adjust x-position correctly (`SET_OVER_COL`).**  
+5. **Exit the function and return to the main program.**  
+
+### **Algorithm for Moving the Lit Point Upward When Exceeding an LED Block (KEY_W_MORE_7)**
+
+### **1. Overview**
+This program handles the **W key press when the lit point exceeds the upper boundary of an 8x8 LED block**. When this happens, the lit point must be **transferred to the corresponding LED block above** in the **16x16 LED matrix**.
+
+- **Check the current position of the lit point** (Matrix A or B).
+- **Move the lit point from A → C or B → D** when exceeding the top boundary (y=7 → y=8).
+- **Ensure the x-position remains unchanged** when transitioning between blocks.
+- **Update shift register values** to reflect the new coordinates.
+
+### **2. Program Explanation**
+
+#### **Step 1: Reset y and check the current matrix position**
+```assembly
+KEY_W_MORE_7:
+        CLR R10                 ; Reset y-position counter in an 8x8 LED block
+        MOV R16, R1
+        CPI R16, 1              ; Check if the lit point is in Matrix A or B?
+        BRCC MATRIX_B_TO_D      ; If R1 = 1, jump to handle Matrix B → D
+```
+- **R10 = 0** resets the y-position counter.
+- **R1 holds the current matrix block** (R1=0: Matrix A, R1=1: Matrix B).
+- If **currently in Matrix B**, jump to `MATRIX_B_TO_D`.
+- If **currently in Matrix A**, continue processing `Matrix A → C`.
+
+#### **Step 2: Transition from Matrix A → Matrix C**
+```assembly
+        ; Transition from Matrix A to Matrix C
+        SBI PORTA,6             ; Set HIGH for C_P0
+        SBI PORTA,4             
+        CBI PORTA,3        
+        SBI PORTA,3        
+        CBI PORTA,5        
+        SBI PORTA,5
+        MOV R6, R11             ; Store x-position before transition
+        INC R6
+        DEC R6                  
+        BREQ EXIT_KEY_W_MORE_7  ; If x = 0, exit
+        CBI PORTA,4             ; If x > 0, proceed to set x
+```
+- **Configure PORTA to activate row control for Matrix C**.
+- **Store the current x-position in R6** to retain the x-coordinate after transition.
+- **If x = 0**, meaning the lit point is in the first column, **exit the function**.
+- **If x > 0**, proceed to adjust x in Matrix C.
+
+#### **Step 3: Update y-position in Matrix C**
+```assembly
+SET_Y_W:
+        CBI PORTA,3        
+        SBI PORTA,3    
+        DEC R6
+        BRNE SET_Y_W    
+        CBI PORTA,5        
+        SBI PORTA,5
+        RJMP EXIT_KEY_W_MORE_7
+```
+- **Adjust the y-position in Matrix C** using **PORTA signals**.
+- **Loop through x-adjustment to place the lit point correctly after transition**.
+
+#### **Step 4: Transition from Matrix B → Matrix D**
+```assembly
+MATRIX_B_TO_D:
+        SBI PORTA,6             ; Set HIGH for D_P0
+        SBI PORTA,4        
+        CBI PORTA,3                
+        SBI PORTA,3    
+        CBI PORTA,5        
+        SBI PORTA,5    
+        LDI R16, 8              ; Send 8 LOW signals to ensure D_P0=1
+        CBI PORTA,4
+```
+- **Similar to Matrix A → C**, but applied for Matrix B → D.
+- **Set control signals to activate row control for Matrix D**.
+
+#### **Step 5: Update y-position in Matrix D**
+```assembly
+SET_Y_8_W_MATRIX_D:
+        CBI PORTA,3        
+        SBI PORTA,3
+        DEC R16
+        BRNE SET_Y_8_W_MATRIX_D    
+        CBI PORTA,5        
+        SBI PORTA,5
+```
+- **Decrement R16 to ensure the y-position is updated correctly within Matrix D**.
+
+#### **Step 6: Check x and adjust if needed**
+```assembly
+        MOV R6, R11             ; Retrieve x-position in Matrix B
+        INC R6
+        DEC R6
+        BREQ EXIT_KEY_W_MORE_7  ; If x=0, exit
+        CBI PORTA,4             ; If x>0, proceed to set x
+```
+- **If x = 0**, no adjustment is needed, exit immediately.
+- **If x > 0**, continue setting x.
+
+```assembly
+SET_X_W_MATRIX_D:
+        CBI PORTA,3        
+        SBI PORTA,3    
+        DEC R6
+        BRNE SET_X_W_MATRIX_D    
+        CBI PORTA,5        
+        SBI PORTA,5    
+```
+- **Loop to set the new x-position in Matrix D**.
+
+#### **Step 7: Exit the function**
+```assembly
+EXIT_KEY_W_MORE_7:                
+        CBI PORTA,3
+        CBI PORTA,6            
+        INC R0                  ; Increase the matrix position counter    
+        RET                     ; Return to the main program
+```
+- **Deactivate control signals**.
+- **Increase R0 to update the matrix position counter**.
+- **Return to the main program**.
+
+### **3. Summary of `KEY_W_MORE_7` Algorithm**
+1. **Check the current matrix position (A or B).**  
+2. **If in Matrix A, transition to Matrix C.**  
+   - Configure control signals.  
+   - Adjust y-position and set x accordingly.  
+3. **If in Matrix B, transition to Matrix D.**  
+   - Similar process as A → C.  
+   - Ensure y and x are properly updated.  
+4. **Increment the matrix coordinate counter to track movement.**  
+5. **Return to the main program.**  
+
+### **Algorithm for Moving the Lit Point to the Right (KEY_D)**
+
+### **1. Overview**
+This program processes the **D key press**, which moves the lit point **to the right** in the **16x16 LED matrix**.
+
+- **Increments the x-coordinate to shift the lit point to the right.**
+- **Checks if the lit point exceeds the right boundary of an 8x8 LED block:**
+  - If **not exceeded**, it continues moving within the block (`KEY_D_LESS_7`).
+  - If **exceeded**, it transitions to the adjacent block (`KEY_D_MORE_7`).
+- **Checks if the lit point moves beyond the 16x16 matrix:**
+  - If **inside**, it moves normally.
+  - If **outside**, the matrix is reset, and the lit point is repositioned.
+
+### **2. Program Explanation**
+
+#### **Step 1: Check the new x-position of the lit point**
+```assembly
+KEY_D:    
+        PUSH R16
+        INC R11                 ; Increment x-position counter
+        MOV R16, R11                
+        CPI R16, 8              ; Check if it exceeds the size of an 8x8 LED block
+        BRCC OVER_KEY_D         ; If exceeded, jump to OVER_KEY_D
+        RCALL KEY_D_LESS_7      ; If not, execute `KEY_D_LESS_7` for movement within the block
+        RJMP EXIT_D                    
+```
+- **Increments R11** to move the lit point **one step to the right**.
+- If **R11 < 8**, the point remains within the block and executes `KEY_D_LESS_7`.
+- If **R11 ≥ 8**, the point **crosses the right boundary** and needs to transition to the next block (`KEY_D_MORE_7`).
+
+#### **Step 2: Check if the lit point exceeds the 16x16 matrix**
+```assembly
+OVER_KEY_D:
+        RCALL KEY_D_MORE_7      ; Execute `KEY_D_MORE_7` to move to the new block
+        MOV R16, R1             ; Check if the lit point has exceeded the 16x16 LED matrix
+        CPI R16, 2
+        BRCC OVER_B_D_ROW       ; If exceeded, jump to OVER_B_D_ROW
+        RCALL KEY_D_LESS_7      ; If not, continue normal movement
+        RJMP EXIT_D
+```
+- If the lit point is **within the 16x16 matrix**, it continues moving normally.
+- If the lit point **exceeds the 16x16 matrix**, it jumps to `OVER_B_D_ROW` to reset the matrix.
+
+#### **Step 3: Reset the matrix if the lit point exceeds the 16x16 limit**
+```assembly
+OVER_B_D_ROW:
+        PUSH R12                ; Save y-position before resetting the matrix
+        RCALL SETUP_MATRIX      ; Reset the LED matrix
+        POP R16
+        CPI R16, 0              ; Check if y = 0?
+        BREQ EXIT_D             ; If y = 0, skip SET_OVER_ROW
+```
+- **If the lit point moves outside the 16x16 matrix**, the system resets using `SETUP_MATRIX`.
+- **R12 stores the y-position before reset**, and the system restores **R16 to check y**.
+- If **y = 0**, it exits without adjusting y.
+
+#### **Step 4: Adjust y-position if needed**
+```assembly
+SET_OVER_ROW:
+        INC R12
+        RCALL KEY_W
+        DEC R16
+        BRNE SET_OVER_ROW
+```
+- If **y ≠ 0**, the program **increments y and moves the point up (W direction).**
+- **This ensures correct positioning before the reset.**
+
+#### **Step 5: Exit the D key processing routine**
+```assembly
+EXIT_D:
+        POP R16
+        RET
+```
+- **Ends the D key handling routine** by restoring **R16** and returning to the main program.
+
+#### **Step 6: Move within a single LED block (`KEY_D_LESS_7`)**
+```assembly
+KEY_D_LESS_7:
+        PUSH R16        
+        MOV R16, R0            
+        CPI R16, 1              ; Check if in Matrix A, B or C, D
+        BRCC MATRIX_C_D_X       ; If in Matrix C or D, handle it separately
+```
+- **Checks whether the lit point is in Matrix A, B (R0 = 0) or Matrix C, D (R0 = 1).**
+
+##### **If in Matrix A or B**
+```assembly
+        SBI PORTA,6             ; Use shift register 595 to control P of Matrix A, B
+        CBI    PORTA,1          ; Send LOW signal to parallel outputs
+        CBI PORTA,0             ; Move the lit point one step right
+        SBI PORTA,0        
+        CBI PORTA,2        
+        SBI PORTA,2    
+        CBI PORTA,0
+        CBI PORTA,6            
+        RJMP EXIT_KEY_D_LESS_7  ; Finish movement
+```
+- **Sends a signal to the shift register** to update the P control of Matrix A, B.
+- **Shifts the lit point to the right** using control pulses.
+
+##### **If in Matrix C or D**
+```assembly
+MATRIX_C_D_X:
+        SBI PORTA,6             ; Use shift register 595 to control P of Matrix C, D
+        CBI    PORTA,4          ; Send LOW signal to parallel outputs
+        CBI PORTA,3             ; Move the lit point one step right
+        SBI PORTA,3    
+        CBI PORTA,5        
+        SBI PORTA,5
+        CBI PORTA,3    
+        CBI PORTA,6        
+EXIT_KEY_D_LESS_7:                
+        POP R16
+        RET
+```
+- **Similar to Matrix A, B but for Matrix C, D.**
+- **Updates the shift register to move the lit point right.**
+
+### **3. Summary of the `KEY_D` Algorithm**
+1. **Increment x by 1 to move right.**  
+2. **Check if the lit point exceeds the current block:**  
+   - If **not exceeded**, move normally (`KEY_D_LESS_7`).  
+   - If **exceeded**, jump to the adjacent LED block (`KEY_D_MORE_7`).  
+3. **Check if it exceeds the 16x16 matrix:**  
+   - If **inside**, continue normal movement.  
+   - If **outside**, **reset the LED matrix** (`SETUP_MATRIX`).  
+4. **If y ≠ 0 after reset, shift the lit point up correctly (`SET_OVER_ROW`).**  
+5. **Exit the function and return to the main program.**  
+
+### **Algorithm for Moving the Lit Point to the Right When Exceeding an LED Block (KEY_D_MORE_7)**
+
+### **1. Overview**
+This program processes the **D key press when the lit point exceeds the right boundary of an 8x8 LED block**. When this happens, the lit point must be **transferred to the corresponding LED block to the right** in the **16x16 LED matrix**.
+
+- **Check whether the lit point is in Matrix A or C** to **control the correct shift register hardware**.
+- **If the lit point is in Matrix A**, it **moves to Matrix B** upon exceeding the right boundary.
+- **If the lit point is in Matrix C**, it **moves to Matrix D** upon exceeding the right boundary.
+- **Update the new coordinates after shifting** to ensure the lit point remains in the correct position.
+
+### **2. Program Explanation**
+
+#### **Step 1: Reset x and check the current matrix position**
+```assembly
+KEY_D_MORE_7:
+        CLR R11                 ; Reset x-position counter within an 8x8 LED block
+        MOV R16, R0                
+        CPI R16, 1              ; Check if the lit point is in Matrix A or C?
+        BRCC MATRIX_C_TO_D      ; If in Matrix C, jump to MATRIX_C_TO_D
+```
+- **R11 = 0** resets the x-position counter.
+- **R0 stores the current matrix block** (R0=0: Matrix A, R0=1: Matrix C).
+- If **currently in Matrix C**, the program jumps to `MATRIX_C_TO_D` for handling **C → D transition**.
+- If **currently in Matrix A**, it continues handling **A → B transition**.
+
+#### **Step 2: Transition from Matrix A → Matrix B**
+```assembly
+        ; Transition from Matrix A to Matrix B
+        SBI PORTA,7                
+        CBI PORTA,4             ; Initialize LOW level at B_GND0 of Matrix B
+        CBI PORTA,3        
+        SBI PORTA,3        
+        CBI PORTA,5        
+        SBI PORTA,5
+        MOV R5, R10             ; Store y-position before transition
+        INC R5    
+        DEC R5
+        BREQ EXIT_KEY_D_MORE_7  ; If y=0, exit
+        SBI PORTA,4             ; Adjust B_GND0 to B_GNDy position    
+```
+- **Configure PORTA to set up row control for Matrix B**.
+- **Store the current y-position in R5** to maintain the y-coordinate after transition.
+- **If y = 0**, meaning the lit point is in the first row, **exit the function**.
+- **If y > 0**, proceed to update the new y position in Matrix B.
+
+#### **Step 3: Update y-position in Matrix B**
+```assembly
+UP_1:
+        CBI PORTA,3        
+        SBI PORTA,3    
+        DEC R5
+        BRNE UP_1    
+        CBI PORTA,5        
+        SBI PORTA,5    
+        RJMP EXIT_KEY_D_MORE_7  ; Jump to exit
+```
+- **Adjust the y-position to ensure the lit point appears correctly in Matrix B**.
+- **Update control signals to reflect the position change**.
+
+#### **Step 4: Transition from Matrix C → Matrix D**
+```assembly
+MATRIX_C_TO_D:
+        SBI PORTA,7                
+        CBI PORTA,4             ; Initialize LOW level at B_GND0
+        CBI PORTA,3    
+        SBI PORTA,3
+        CBI PORTA,5        
+        SBI PORTA,5    
+        LDI R16, 8              ; Shift LOW level from B_GND0 to D_GND0
+        SBI PORTA,4
+```
+- **Similar to the A → B transition but applied for C → D**.
+- **Set control signals to ensure correct row control in Matrix D**.
+
+#### **Step 5: Update y-position in Matrix D**
+```assembly
+LOOP_595_COL_2:
+        CBI PORTA,3        
+        SBI PORTA,3
+        DEC R16
+        BRNE LOOP_595_COL_2        
+        CBI PORTA,5        
+        SBI PORTA,5
+        MOV R5, R10             ; Store y-position before transition to Matrix D
+        INC R5
+        DEC R5
+        BREQ EXIT_KEY_D_MORE_7  ; If y=0, exit
+        SBI PORTA,4             ; Adjust D_GND0 to D_GNDy position
+```
+- **Shift control signals to ensure the lit point appears in the correct position in Matrix D**.
+
+#### **Step 6: Update y-position in Matrix D**
+```assembly
+UP_2:
+        CBI PORTA,3        
+        SBI PORTA,3    
+        DEC R5
+        BRNE UP_2    
+        CBI PORTA,5        
+        SBI PORTA,5
+```
+- **Adjust the y-position in Matrix D to ensure correct placement**.
+
+#### **Step 7: Exit the function**
+```assembly
+EXIT_KEY_D_MORE_7:                ; Exit routine
+        CBI PORTA,3    
+        CBI PORTA,7            
+        INC R1
+        RET
+```
+- **Deactivate control signals**.
+- **Increment R1 to update the matrix coordinate counter**.
+- **Return to the main program to continue processing**.
+
+### **3. Summary of the `KEY_D_MORE_7` Algorithm**
+1. **Check whether the lit point is in Matrix A or C.**  
+2. **If in Matrix A, transition to Matrix B.**  
+   - Configure control signals.  
+   - Adjust y and set the correct position.  
+3. **If in Matrix C, transition to Matrix D.**  
+   - Similar process as A → B.  
+   - Ensure the correct y-position update.  
+4. **Increment the matrix coordinate counter to reflect movement.**  
+5. **Return to the main program to continue processing.**  
+
+### **Implementing A, S, Q, E, Z, C Keys Based on W and D**
+
+At this point, we have established **W** for moving **up** and **D** for moving **right**. The remaining movement keys **A, S, Q, E, Z, C** can be derived using a combination of **W and D**, as the shift register **only functions in one direction**.
+
+### **1. Implementing Basic Keys A, S Using W, D**
+| **Key** | **Movement Direction** | **Derived From** |
+|---------|----------------------|-----------------|
+| **A (Left)** | X decreases | Press **(16 - 1) times D** |
+| **S (Down)** | Y decreases | Press **(16 - 1) times W** |
+
+- **Principle:**  
+  - **A = "Reverse" of D** → Since D shifts right, A must shift **(16-1) times D** to move left.  
+  - **S = "Reverse" of W** → Since W shifts up, S must shift **(16-1) times W** to move down.  
+
+
+### **2. Implementing Diagonal Movement Keys (Q, E, Z, C)**
+The diagonal movement keys **Q, E, Z, C** are combinations of **W (up) and D (right)**.  
+| **Key** | **Movement Direction** | **Combination of Keys** |
+|---------|----------------------|-----------------|
+| **Q (Left - Up)** | X decreases, Y increases | A + W |
+| **E (Right - Up)** | X increases, Y increases | D + W |
+| **Z (Left - Down)** | X decreases, Y decreases | A + S |
+| **C (Right - Down)** | X increases, Y decreases | D + S |
+
+- **Principle:**  
+  - **Q = A + W** (Moves diagonally left-up).  
+  - **E = D + W** (Moves diagonally right-up).  
+  - **Z = A + S** (Moves diagonally left-down).  
+  - **C = D + S** (Moves diagonally right-down).  
+
+### **3. Handling Boundary Collisions**
+For **Q, E, Z, C**, when colliding with a boundary, the lit point **reflects at the intersection of the diagonal path and the opposite boundary**.  
+- Example: **If the lit point is at (3,15) and E is pressed (moving diagonally up)**:  
+  - It hits the top boundary **y = 15**, but since it moves diagonally, it reflects at **the left boundary**, resulting in **a new position of (0, 15 - 3)**.  
+
+## **System operation video**
+### 🎮 Button Operation  
+The button is used to show the operation of the pressed keys.  
+[![Button Operation](https://img.youtube.com/vi/3XSUUd_ZQuQ/0.jpg)](https://youtu.be/3XSUUd_ZQuQ)  
+
+### 🔗 UART Control Point  
+[![UART Control](https://img.youtube.com/vi/4y26vJ2dfxk/0.jpg)](https://youtu.be/4y26vJ2dfxk)  
