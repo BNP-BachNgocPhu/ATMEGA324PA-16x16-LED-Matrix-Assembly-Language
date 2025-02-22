@@ -155,6 +155,7 @@ Therefore, I designed like that:
         <figcaption>Figure 9: designed 16x16 led matrix circuit </figcaption>
         </figure>
         <br>
+        <br>
         <figure>
         <img src="https://github.com/user-attachments/assets/47577e52-9b4d-4b20-905e-37820fd0b828" width="500">
         <br>
