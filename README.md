@@ -29,6 +29,7 @@ Design an electronic circuit using an **ATMEGA324PA** microcontroller and necess
 <div align="center">
     <figure>
         <img src="https://github.com/user-attachments/assets/6514f035-46ca-4adf-a96d-a33f803dc74c" width="300">
+        <br>
         <figcaption>Figure 5: 16x16 LED Matrix composed of four 8x8 LED matrices</figcaption>
     </figure>
 </div>
@@ -38,6 +39,7 @@ Design an electronic circuit using an **ATMEGA324PA** microcontroller and necess
 <div align="center">
     <figure>
         <img src="https://github.com/user-attachments/assets/fbca381e-cb52-44fc-bd11-51783511efb5" width="300">
+        <br>
         <figcaption>Figure 6: ATmega324PA Pinout</figcaption>
     </figure>
 </div>
@@ -77,6 +79,7 @@ data bus communication, or controlling peripheral devices.
 <div align="center">
     <figure>
         <img src="https://github.com/user-attachments/assets/fdc91137-e878-4578-8534-d59ad9934740" width="300">
+        <br>
         <figcaption>Figure 7: 74HC573 LACHES TIPO D</figcaption>
     </figure>
 </div>
@@ -109,6 +112,7 @@ The 74HC595 is an 8-bit serial-in, parallel-out shift register with a storage re
 <div align="center">
     <figure>
         <img src="https://github.com/user-attachments/assets/a92cf625-7c7c-4183-8684-b4cce38f242f" width="500">
+        <br>
         <figcaption>Figure 8: 74HC595 Shift Register</figcaption>
     </figure>
 </div>
@@ -147,11 +151,15 @@ Therefore, I designed like that:
 <div align="center">
     <figure>
         <img src="https://github.com/user-attachments/assets/fabf020a-d3d2-4fa6-9e83-4c5a3a6a8bb0" width="500">
+        <br>
         <figcaption>Figure 9: designed 16x16 led matrix circuit </figcaption>
         </figure>
+        <br>
         <figure>
         <img src="https://github.com/user-attachments/assets/47577e52-9b4d-4b20-905e-37820fd0b828" width="500">
+        <br>
         <img src="https://github.com/user-attachments/assets/a1945d7a-207d-42e7-a08e-857fa65082dc" width="300">
+        <br>
         <figcaption>Figure 10, 11: 16x16 led matrix circuit in Proteus
     </figure>
 </div>
