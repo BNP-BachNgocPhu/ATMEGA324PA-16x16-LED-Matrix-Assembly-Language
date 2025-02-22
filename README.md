@@ -8,12 +8,13 @@ Design and Simulation of 16x16 LED Matrix Control Using ATMEGA324PA Microcontrol
     </figure>
 </div>
 
-
+<br>
 <div align="center">
     <figure>
         <img src="https://github.com/user-attachments/assets/4775d10c-605c-4c69-83ed-339bf64d0e48" width="200">
         <br>
         <figcaption>Figure 2: 8x8 LED Matrix</figcaption>
+        <br>
         <br>
         <img src="https://github.com/user-attachments/assets/e7105e4f-e375-45c1-844a-936abfb5dafd" width="400">
         <br>
