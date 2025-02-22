@@ -864,7 +864,6 @@ For **Q, E, Z, C**, when colliding with a boundary, the lit point **reflects at 
 </div> 
 
 
-
 ## **System operation video**
 ### 🎮 Button Operation  
 The button is used to show the operation of the pressed keys.  
