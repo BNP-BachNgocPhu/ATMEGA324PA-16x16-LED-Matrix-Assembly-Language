@@ -193,7 +193,7 @@ Control the LED
 
 <div align="center">
     <figure>
-        <img src="https://github.com/user-attachments/assets/1815f35e-5dc6-4d50-9341-2cd169e53229" width="500">
+        <img src="https://github.com/user-attachments/assets/1815f35e-5dc6-4d50-9341-2cd169e53229" width="800">
         <br>
         <figcaption>Figure 12: Turning on the LED at (10, 8)</figcaption>
     </figure>
@@ -208,7 +208,7 @@ The system uses **74HC573 (Latch IC)** and **74HC595 (Shift Register IC)** to di
 
 <div align="center">
     <figure>
-        <img src="https://github.com/user-attachments/assets/8af7f956-6be0-496d-9c49-7a9da8fdee3d" width="500">
+        <img src="https://github.com/user-attachments/assets/8af7f956-6be0-496d-9c49-7a9da8fdee3d" width="800">
         <br>
         <figcaption>Figure 13: Circuit Controlling Rows (ROW0 - ROW15)</figcaption>
     </figure>
@@ -258,7 +258,7 @@ The system utilizes **74HC573 (Latch IC) and 74HC595 (Shift Register IC)** to co
 
 <div align="center">
     <figure>
-        <img src="https://github.com/user-attachments/assets/88625b9a-c277-47dd-bea5-fbd91925267a" width="500">
+        <img src="https://github.com/user-attachments/assets/88625b9a-c277-47dd-bea5-fbd91925267a" width="800">
         <br>
         <figcaption>Figure 14: Circuit Controlling Columns (COL0 - COL15)</figcaption>
     </figure>
